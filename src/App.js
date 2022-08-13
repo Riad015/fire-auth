@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, FacebookAuthProvider} from "firebase/auth";
 
 import firebaseConfig from './firebase.config';
 
@@ -19,10 +19,12 @@ function App() {
     error:'',
     existingUser: false
   })
-  const provider = new GoogleAuthProvider();
+  const googleProvider = new GoogleAuthProvider();
+  const fbProvider = new FacebookAuthProvider();
+
   const handleSignIn = ()=>{
       const auth = getAuth();
-      signInWithPopup(auth, provider)
+      signInWithPopup(auth, googleProvider)
       .then((result) =>{
         const {displayName, email, photoURL} = result.user;
         const signInUser = {
@@ -42,6 +44,23 @@ function App() {
     
   }
 
+  const handlefbSignIn = ()=>{
+    const auth = getAuth();
+    signInWithPopup(auth, fbProvider)
+    .then((result) => {
+       const user = result.user;
+       const credential = FacebookAuthProvider.credentialFromResult(result);
+       const accessToken = credential.accessToken;
+       console.log('Fb user after sign in',user);
+    })
+   .catch((error) => {
+       const errorCode = error.code;
+       const errorMessage = error.message;
+       const email = error.customData.email;
+       const credential = FacebookAuthProvider.credentialFromError(error);
+  });
+
+  }
   const handleSignOut = () =>{
       const auth = getAuth();
       signOut(auth).then(() => {
@@ -146,6 +165,8 @@ function App() {
           user.isSignedIn ? <button onClick={handleSignOut}>Sign Out</button> :
           <button onClick={handleSignIn}>Sign in</button>
         }
+        <br />
+        <button onClick={handlefbSignIn}>Facebook Sign In</button>
         <h1>Password Authentication Section</h1>
 
         <input type="checkbox" name="switchForm" onChange={switchFrom} id="switchForm"/>
